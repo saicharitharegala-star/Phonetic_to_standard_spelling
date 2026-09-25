@@ -4,10 +4,10 @@ import streamlit as st
 
 from normalize import ServerBusyError, normalize, normalize_audio
 
-st.set_page_config(page_title="Phonetic to Standard Spelling", page_icon="🔤")
+st.set_page_config(page_title="Hinglish Language Workbench", page_icon="📝")
 
-st.title("Phonetic to Standard Spelling")
-st.caption("Type or speak messy Hinglish and get text written in the English alphabet plus Devanagari (Hindi).")
+st.markdown("### Hinglish Language Workbench")
+st.caption("Type or speak messy Hinglish and get standardized Roman + Devanagari output.")
 
 # Set by the "Try again" button (via on_click, so it survives the rerun that button triggers).
 retry_requested = st.session_state.pop("retry_requested", False)
@@ -40,10 +40,35 @@ def run_and_show(fn, *args) -> None:
             st.error(f"Something went wrong: {e}")
         else:
             retry_notice.empty()
-            st.subheader("Cleaned text written in the English alphabet")
-            st.code(result["cleaned"], language=None)
-            st.subheader("Devanagari (Hindi)")
-            st.code(result["devanagari"], language=None)
+            # Emphasize the primary input/output area: show original and cleaned text
+            st.markdown("**Original input → Cleaned output**")
+
+            cleaned = result["cleaned"]
+            devanagari = result["devanagari"]
+
+            # If original text was passed through args (text mode), show side-by-side
+            original = None
+            if args:
+                # For normalize(text) the first arg is the text; for audio it's bytes
+                if isinstance(args[0], str):
+                    original = args[0]
+
+            if original:
+                cols = st.columns([1, 1])
+                with cols[0]:
+                    st.write("**Original**")
+                    st.code(original)
+                with cols[1]:
+                    st.write("**Cleaned (Roman)**")
+                    st.code(cleaned)
+                st.write("**Devanagari (Hindi)**")
+                st.code(devanagari)
+            else:
+                # Audio mode or no original string available — stack outputs with emphasis
+                st.subheader("Cleaned (Roman)")
+                st.code(cleaned)
+                st.subheader("Devanagari (Hindi)")
+                st.code(devanagari)
 
 
 mode = st.radio("Input method", ["Text", "Voice"], horizontal=True)
@@ -51,7 +76,9 @@ mode = st.radio("Input method", ["Text", "Voice"], horizontal=True)
 if mode == "Text":
     # A form makes Ctrl+Enter (Cmd+Enter on Mac) in the text area submit, same as clicking Normalize.
     with st.form("text_form", border=False):
-        text = st.text_area("Hinglish input", placeholder="kal raat ko bohot maza aya yaar", height=120)
+        st.write("\n")
+        st.info("Example: bhai kal milte h, plz tym bta dena")
+        text = st.text_area("Hinglish input", placeholder="bhai kal milte h, plz tym bta dena", height=160)
         submitted = st.form_submit_button("Normalize", type="primary")
     if submitted or retry_requested:
         if not text.strip():
