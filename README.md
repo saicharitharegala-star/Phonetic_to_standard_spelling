@@ -35,6 +35,8 @@ streamlit run src/app.py
 
 Then open the URL Streamlit prints (usually http://localhost:8501).
 
+OR access it via this link: https://hinglishlab-8uczpoku.manus.space/
+
 ## Configuration
 
 | Variable | Required | Default |
